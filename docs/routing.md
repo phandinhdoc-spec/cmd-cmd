@@ -23,21 +23,18 @@ skills; copying this policy into another project requires carrying over AGENTS.m
 the skills, policy code and its referenced docs/config (or keeping this repo as
 the policy working directory). Native provider configuration stays user-global.
 
-- `/cmd-models`: open the real native `/model` picker for the main/controller.
-- `/cmd-models planner` (or worker/verifier): select an exact current native ID
-  through paginated native questions without changing the controller.
-- `/cmd-models status`: show saved choices.
-- `/cmd-models auto [role]`: remove a saved override for that role.
+The native `/cmd-models` mod opens `ui.select` for planner/worker/verifier and
+saves the selected declared BYOK ID without changing the controller. With no
+argument it asks for a role. `status` reads saved choices; `auto [role]` removes
+only that role's override. See [selection contract](model-selection.md) for the
+catalog boundary, installation and cancellation behavior.
 
-Manual controller selection belongs to Command Code. While its menu is open,
-`controller: "session"` suppresses automatic switching; the next native turn
-records the actual selected ID. Cancellation retains the current model. Saved
-exact IDs are restored at a safe turn boundary in future sessions. The skill
-cannot synchronously read the result of a picker that opens after the turn ends.
+Controller selection remains native `/model`; the mod's controller branch only
+shows this instruction. AGENTS.md records the actual controller when observable.
+A saved `controller: "session"` follows the active session until its ID is known.
 Manual task pins bypass preference ordering and the automatic escalation tier
 gate but still require verified capabilities, budget and health. Unavailable or
-ineligible pins block; they never silently fall back. UI selection includes all
-native models, even ones that need metadata before automated task execution.
+ineligible pins block; they never silently fall back.
 
 ## Automatic selection
 
@@ -78,7 +75,7 @@ Attach under `providers.agy.models.<exact discovered ID>` or a narrowly verified
 family rule. Cost units are USD per million input/output tokens, reflecting the
 user's marginal cost. Zero is valid only when verified. Missing cost is never
 zero. Quota-limited GOAT is disabled in the example until explicitly configured;
-add a profile for the exact ID from `cmd --list-models`, with `native_id` if needed.
+add a profile for the exact ID from verified native runtime metadata, with `native_id` if needed.
 GOAT is a billing pool label here, not an invented native provider prefix.
 
 Selection intersects fresh provider membership with a fresh native allowed list,
@@ -115,7 +112,7 @@ response size is capped, and transport errors are redacted by the CLI.
 ```
 
 `native-models.json` has `observed_at` plus `data:[{"id":"agy/..."}]` using exact
-IDs observed from `cmd --list-models` at that timestamp. This is **our normalized
+IDs observed from verified native runtime metadata at that timestamp. This is **our normalized
 snapshot format**, not a claimed native JSON CLI flag. The native controller
 normalizes its current listing, preserving every ID. Provider and native snapshots
 expire after 300 seconds by default; refresh at dispatch when stale. An AGY snapshot

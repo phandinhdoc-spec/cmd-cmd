@@ -8,7 +8,7 @@ cmd-cmd does not claim enforcement inside the closed native runtime.
 
 | Concern | Owner | cmd-cmd contribution |
 | --- | --- | --- |
-| Provider setup and model picker | native `/connect`, `/model` | saved role policy and `/cmd-models` skill |
+| Provider setup and model picker | native `/connect`, `/model` | saved role policy and `/cmd-models` mod |
 | Planning and review | native Plan/review | durable Markdown contract |
 | Tasks and agents | native task tools and `agent(model=...)` | dependency/write-scope policy |
 | Skills and MCP | native catalogs | reuse/discovery evidence before custom code |
@@ -21,6 +21,8 @@ Sources: [BYOK](https://commandcode.ai/docs/byok),
 [plan mode](https://commandcode.ai/docs/plan-mode),
 [worktrees](https://commandcode.ai/docs/worktrees).
 Verify the installed tool schema before invoking it; availability depends on mode.
+For model selection, see [the verified ModApi boundary](model-selection.md).
+The role picker runs directly as a host command, not as an agent tool call.
 
 Native BYOK discovery, credentials and inference are reused. Native `agent` accepts
 a per-run model override; the controller supplies `native_model` from the decision.

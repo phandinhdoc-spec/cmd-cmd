@@ -6,21 +6,44 @@ This repository intentionally reuses Command Code's native planning, agents, ski
 
 ## Setup once, change models when needed
 
-Inside Command Code, run `/cmd-setup` once. Saved project configuration is reused
-on later runs; model selection is not repeated. To change it, use `/cmd-models`:
+Install the native mod with macOS fish (Command Code 1.66.0 contract):
+
+```fish
+cd ~/.commandcode/cmd-cmd
+git pull --ff-only origin main
+mkdir -p ~/.commandcode/mods/cmd-models ~/.commandcode/skills/cmd-models
+cp .commandcode/mods/cmd-models/index.ts ~/.commandcode/mods/cmd-models/
+cp .commandcode/mods/cmd-models/models.mjs ~/.commandcode/mods/cmd-models/
+cp .commandcode/skills/cmd-models/SKILL.md ~/.commandcode/skills/cmd-models/
+```
+
+Restart Command Code. The mod registers a real host command, ahead of the legacy
+skill. Project-local mods also load in a trusted checkout; installing globally
+makes the command available in other projects, saving choices in the active project.
 
 | Command | Action |
 | --- | --- |
-| `/cmd-models` | Open the native `/model` picker for main/controller |
-| `/cmd-models planner` | Choose a saved planner model from the current native list |
-| `/cmd-models worker` or `verifier` | Save the model for that role |
-| `/cmd-models auto [role]` | Return that role to automatic routing |
+| `/cmd-models` | Choose a role |
+| `/cmd-models planner` | Immediately open the native BYOK model selection dialog |
+| `/cmd-models worker` or `verifier` | Select and save a model for that role |
+| `/cmd-models controller` | Show the instruction to use native `/model` |
+| `/cmd-models auto [role]` | Remove only that role's pin (default: controller) |
 | `/cmd-models status` | Show saved choices |
 
-Manual choices take precedence and persist; unavailable pins ask for a replacement
-instead of silently changing model. The built-in picker remains the authority for
-which models the user can select. Role-specific selection uses the same live native
-list through paginated questions. See [routing and setup](docs/routing.md).
+The menu reads models declared in `~/.commandcode/providers.json`, including AGY
+and any other registered custom provider. It uses native `ui.select`, with exact
+provider-qualified IDs, without an LLM turn, tool discovery or shell fallback.
+Cancellation preserves state. Selection does not change the controller.
+
+**Scope:** Command Code 1.66.0 does not expose the full `/model` catalog through
+ModApi. Built-in subscription models (including GOAT models not declared as a
+custom provider) are not available in this menu. `/connect` manages BYOK entries.
+This is a declared-model menu, not an authentication, entitlement or health check.
+See [runtime evidence and limits](docs/model-selection.md).
+
+Run `/cmd-setup` once for automatic routing. Saved choices persist, but task
+capability, budget, health and fresh catalog checks still apply. Missing policy
+metadata blocks execution; it never silently replaces a manual choice.
 
 ## Dynamic pools and defaults
 
