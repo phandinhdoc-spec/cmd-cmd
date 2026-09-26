@@ -1,6 +1,6 @@
 ---
 name: cmd-models
-description: Change cmd-cmd models using Command Code's current model list; open the native controller picker, select a planner/worker/verifier model, or return a role to automatic routing.
+description: Change cmd-cmd models using Command Code's native interactive model picker; select controller/planner/worker/verifier roles or return a role to automatic routing.
 ---
 
 # Change cmd-cmd models
@@ -8,51 +8,68 @@ description: Change cmd-cmd models using Command Code's current model list; open
 Default scope is the main/controller. Arguments can name `planner`, `worker`,
 `verifier`, `status`, or `auto [role]`. Speak the user's language.
 
-## Controller: native picker
+## Native picker is authoritative
+
+Do NOT run `cmd --list-models` merely to build a model-selection UI. Some Command
+Code installations expose no useful output from that command, and duplicating the
+native picker is brittle.
+
+For every interactive model change, use Command Code's native `/model` picker as
+the source of truth. Never invent model IDs, auto-select the first item, or replace
+the picker with a shell-generated menu.
+
+## Controller
 
 1. Read `.cmd/model-overrides.json` if present. Preserve unrelated roles.
-2. Set `roles.controller` to `"session"` using native file tools. This disables
-   automatic controller replacement and follows the actual native session choice.
-3. Call native `run_command` with `command: "/model"`, then finish the turn so
-   Command Code can open its picker. The user selects directly from the native
-   list. For an explicit model ID, first verify it against `cmd --list-models`,
-   then use `/model <exact-id>`.
-4. State only that the picker has been requested; do not claim a model was selected.
-   Cancelling the picker keeps the current session model and manual-session mode.
-   On the next turn, use the active native model as the authority; never infer it
-   from a stale list or the recommended defaults.
+2. Set `roles.controller` to `"session"` using native file tools.
+3. Invoke the native interactive command `/model` through the runtime mechanism
+   that executes Command Code slash commands (not a shell command), then finish the
+   turn so the picker can be displayed.
+4. State only that the native picker was requested. Do not claim a selection until
+   the runtime reports the selected active model.
 
-If `run_command` is unavailable (including headless mode), explain that the user
-can open `/model` in an interactive session. Never auto-select the first menu item.
-If plan mode prevents writing the override, open the picker if available and
-report that persisting manual mode still needs a writable turn; do not claim it saved.
+Cancelling keeps the current session model. If the runtime cannot invoke slash
+commands programmatically, tell the user to run `/model` directly; do not call a
+shell command named `cmd` as a substitute.
 
-## Planner, worker or verifier: choose from the live native list
+## Planner, worker, verifier
 
-Run `cmd --list-models`. Use its exact IDs and provider labels, including all
-providers available to this user. Do not substitute the AGY endpoint list for
-Command Code's allowed list, invent IDs, or filter the UI down to router defaults.
+These roles also use the native `/model` picker.
 
-Use native `ask_user_question` to offer provider, then model choices. Respect the
-live tool's option limits; paginate large lists with Next/Previous and retain the
-original IDs. Support searching or pasting an exact ID from the list. In headless
-mode, require an explicit ID instead of a menu that might auto-answer.
+1. Remember the requested target role for this selection.
+2. Invoke native `/model` and let the user choose from Command Code's live list.
+3. After the picker returns a selected/active exact model ID, save that ID under
+   `roles.<role>` in `.cmd/model-overrides.json`, preserving all unrelated roles.
+4. Write `updated_at` with a seconds-resolution ISO timestamp including timezone.
+5. Confirm the role and exact model actually reported by the native runtime.
 
-Save the selected exact native ID in `roles.<role>` in
-`.cmd/model-overrides.json` with a seconds-resolution `updated_at` including timezone.
-Use native editing tools, preserving other roles. Initial shape:
+Initial shape:
 
 ```json
 {"roles": {}, "updated_at": "<current ISO timestamp>"}
 ```
 
+If the runtime cannot return the selected model to the skill, do not guess it.
+Explain that the current Command Code runtime cannot persist a role-specific pin
+from an interactive picker automatically. Ask the user for the exact ID shown by
+`/model`, then validate/use that explicit ID through native runtime information
+when available. Do not fall back to `cmd --list-models` solely because the picker
+result is unavailable.
+
 A manual role pin supersedes automatic model preferences and authorizes that
 model's escalation tier, but task capability, budget and health gates still apply.
 If a selected model lacks verified policy metadata, record the choice and explain
-that task execution needs metadata before routing. Never silently fall back from
-a pin. Read `docs/routing.md` when adding metadata or explaining a blocked route.
+that task execution needs metadata before routing. Never silently fall back from a
+pin. Read `docs/routing.md` when adding metadata or explaining a blocked route.
 Native agent calls must receive the pinned `model` explicitly; omitting it inherits
 the controller and loses the user's choice.
+
+## Explicit model IDs
+
+When the user supplies an exact model ID, prefer validation against native runtime
+model metadata/listing if that capability is available. A non-interactive listing
+may be used for validation, but it MUST NOT be required for opening an interactive
+selection and MUST NOT replace the native `/model` picker.
 
 ## Auto and status
 
