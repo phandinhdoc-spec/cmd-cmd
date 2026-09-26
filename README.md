@@ -4,6 +4,53 @@ CommandCode-native CMD control/policy layer.
 
 This repository intentionally reuses Command Code's native planning, agents, skills, MCP, checkpoints/worktrees, and other runtime capabilities instead of reimplementing them.
 
+## Setup once, change models when needed
+
+Inside Command Code, run `/cmd-setup` once. Saved project configuration is reused
+on later runs; model selection is not repeated. To change it, use `/cmd-models`:
+
+| Command | Action |
+| --- | --- |
+| `/cmd-models` | Open the native `/model` picker for main/controller |
+| `/cmd-models planner` | Choose a saved planner model from the current native list |
+| `/cmd-models worker` or `verifier` | Save the model for that role |
+| `/cmd-models auto [role]` | Return that role to automatic routing |
+| `/cmd-models status` | Show saved choices |
+
+Manual choices take precedence and persist; unavailable pins ask for a replacement
+instead of silently changing model. The built-in picker remains the authority for
+which models the user can select. Role-specific selection uses the same live native
+list through paginated questions. See [routing and setup](docs/routing.md).
+
+## Dynamic pools and defaults
+
+AGY is a provider pool discovered through OpenAI-compatible `/v1/models`, intersected
+with the models currently allowed by Command Code. Model names below are configurable
+preferences, never a hard-coded catalog:
+
+- Controller: `agy/gemini-3.8-flash-low`.
+- Planner: `agy/gemini-3.8-flash-high`; medium for light tasks.
+- Escalation: Gemini 3.1 Pro High or Claude Sonnet/Opus via AGY only when difficulty
+  or verified failure warrants it (or the user explicitly pins that model).
+- GOAT / DeepSeek V4 Flash Fast: supplemental/fallback pool, not default controller.
+
+The router checks role, difficulty, capabilities, context, cost budget, freshness
+and health. Unknown metadata fails closed. Configure verified prices/limits during
+setup; the example deliberately does not assume AGY is free. See
+[policy configuration](config/routing.example.json) and [routing design](docs/routing.md).
+
+## Implementation boundary and validation
+
+Python 3.9+, standard library only. `python3 -m cmd_cmd --help` exposes read-only
+catalog discovery and policy evaluation. Run `python3 -m unittest discover -s tests -v`.
+The CLI emits a decision; Command Code executes it using native tools. It does not
+install providers, launch inference, run agents, or replace the native scheduler.
+
+[Native execution contract](docs/native-runtime.md) covers function/method work
+units, dependency DAG, file-conflict locking, library-first discovery and native
+plan review. The supplied skills and controller instructions are the integration
+surface; end-to-end behavior still depends on the installed native runtime.
+
 ## Plan-as-Markdown contract
 
 Every orchestrated plan MUST be persisted as a human-editable Markdown file. A plan that exists only in model context or terminal output is not a valid CMD plan.

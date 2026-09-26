@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Machine-local policy and catalog evidence (plans remain versioned)
+.cmd/setup.json
+.cmd/routing.json
+.cmd/model-overrides.json
+.cmd/catalog*.json
+.cmd/native-models.json
+.codebase-memory/

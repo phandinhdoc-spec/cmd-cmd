@@ -1,0 +1,13 @@
+{
+  "role": "controller",
+  "difficulty": 1,
+  "capabilities": [
+    "tools"
+  ],
+  "input_tokens": 8000,
+  "output_tokens": 1000,
+  "max_cost_usd": 0.02,
+  "verified_failure": false,
+  "attempted": [],
+  "unavailable": []
+}

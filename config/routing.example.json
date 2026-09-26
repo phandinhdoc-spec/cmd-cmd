@@ -1,0 +1,100 @@
+{
+  "catalog_ttl_seconds": 300,
+  "max_attempts": 3,
+  "providers": {
+    "agy": {
+      "enabled": true,
+      "priority": 0,
+      "native_prefix": "agy/",
+      "rules": [
+        {
+          "match": "gemini-*-flash-*",
+          "metadata": {
+            "roles": [
+              "controller",
+              "planner",
+              "worker",
+              "verifier"
+            ],
+            "capabilities": [],
+            "max_difficulty": 2,
+            "escalation_only": false,
+            "context_window": 0,
+            "max_output": 0,
+            "cost": {
+              "input": null,
+              "output": null
+            }
+          }
+        },
+        {
+          "match": "gemini-*-pro-*",
+          "metadata": {
+            "roles": [
+              "controller",
+              "planner",
+              "worker",
+              "verifier"
+            ],
+            "capabilities": [],
+            "max_difficulty": 3,
+            "escalation_only": true,
+            "context_window": 0,
+            "max_output": 0,
+            "cost": {
+              "input": null,
+              "output": null
+            }
+          }
+        },
+        {
+          "match": "claude-*",
+          "metadata": {
+            "roles": [
+              "controller",
+              "planner",
+              "worker",
+              "verifier"
+            ],
+            "capabilities": [],
+            "max_difficulty": 3,
+            "escalation_only": true,
+            "context_window": 0,
+            "max_output": 0,
+            "cost": {
+              "input": null,
+              "output": null
+            }
+          }
+        }
+      ],
+      "models": {}
+    },
+    "goat": {
+      "enabled": false,
+      "priority": 10,
+      "native_prefix": "",
+      "rules": [],
+      "models": {}
+    }
+  },
+  "preferences": {
+    "controller": [
+      "agy/gemini-3.8-flash-low"
+    ],
+    "planner": [
+      "agy/gemini-3.8-flash-high",
+      "agy/gemini-3.8-flash-medium",
+      "agy/gemini-3.1-pro-high",
+      "agy/claude-sonnet*",
+      "agy/claude-opus*"
+    ],
+    "worker": [],
+    "verifier": []
+  },
+  "light_planner_preferences": [
+    "agy/gemini-3.8-flash-medium",
+    "agy/gemini-3.8-flash-low",
+    "agy/gemini-3.8-flash-high"
+  ]
+}
